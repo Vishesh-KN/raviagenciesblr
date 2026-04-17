@@ -125,10 +125,15 @@
       .section-right { width: 100%; display: flex; flex-direction: column; align-items: flex-start; gap:6px; }
       .brand-count { order: -1; }
 
-      /* Filters: smaller pills, allow wrapping */
-      .filters { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-      .filter-pill { font-size: 12px; padding: 5px 8px; }
+      /* Filters: prefer a single horizontal scrollable row, wrap on very small screens */
+      .filters { display:flex; gap:8px; align-items:center; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; flex-wrap:nowrap; }
+      .filters::-webkit-scrollbar { height:6px; }
+      .filters::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 6px; }
+      .filter-pill { font-size: 12px; padding: 5px 8px; flex: 0 0 auto; }
       .filter-pill.active { padding: 5px 8px; }
+      @media (max-width:360px) {
+        .filters { flex-wrap:wrap; }
+      }
     }
   </style>
 </head>
