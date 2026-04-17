@@ -64,9 +64,14 @@
     .hero h1 { font-family: 'Playfair Display', serif; font-size: clamp(28px, 5vw, 46px); font-weight: 700; line-height: 1.15; margin-bottom: 14px; }
     .hero p { font-size: 15px; color: rgba(255,255,255,0.5); max-width: 400px; margin: 0 auto; line-height: 1.7; }
     .catalog-section { max-width: 1200px; margin: 0 auto; padding: 52px 32px 80px; }
-    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
-    .section-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; }
-    .brand-count { font-size: 13px; color: var(--muted); }
+      .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; }
+      .section-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; }
+      .section-right { display:flex; align-items:center; gap:12px; }
+      .filters { display:flex; gap:8px; align-items:center; }
+      .filter-pill { padding:6px 12px; border-radius:999px; background:#fff; color:var(--navy); border:1px solid rgba(15,22,35,0.08); cursor:pointer; font-size:13px; font-weight:500; }
+      .filter-pill:hover { color: var(--gold); }
+      .filter-pill.active { background: var(--navy); color: #fff; border-color: transparent; }
+      .brand-count { font-size: 13px; color: var(--muted); }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 24px; }
     .card {
       background: #fff; border-radius: 16px; overflow: hidden;
@@ -147,7 +152,10 @@
 <section class="catalog-section">
   <div class="section-head">
     <h2 class="section-title">All Brands</h2>
-    <span class="brand-count" id="brand-count"></span>
+    <div class="section-right">
+      <div id="filters" class="filters" aria-label="Brand category filters"></div>
+      <span class="brand-count" id="brand-count"></span>
+    </div>
   </div>
   <div class="grid" id="catalog-grid">
     <div class="skeleton"></div>
@@ -163,35 +171,78 @@
 </footer>
 
 <script>
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzuQLsZywbUqIrpYdRCik-QLzfVWxlEQF8THBff6s0yoywafWSzk9IQ2zPIHjyqjQzvyg/exec';
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzc6GU-5lXIrwyAFBq5J-CSIpL3Wp8QO3U0qFf0HeaVdXpaYPRa-hWcTF1-PmMo-wqFFw/exec';
 
   async function loadCatalogs() {
     const grid = document.getElementById('catalog-grid');
     const countEl = document.getElementById('brand-count');
+    const filtersEl = document.getElementById('filters');
     try {
       const res = await fetch(SCRIPT_URL);
       const brands = await res.json();
-      countEl.textContent = brands.length + ' brand' + (brands.length !== 1 ? 's' : '');
-      if (!brands.length) {
-        grid.innerHTML = '<div class="empty-state">No catalogs available yet.</div>';
-        return;
+
+      // build unique categories (exclude empty/null)
+      const categorySet = new Set();
+      brands.forEach(b => {
+        if (b.category && String(b.category).trim()) categorySet.add(String(b.category).trim());
+      });
+      const categories = Array.from(categorySet).sort();
+
+      // create filter tabs: All + categories
+      const tabs = ['All', ...categories];
+      filtersEl.innerHTML = '';
+      tabs.forEach((cat, idx) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'filter-pill' + (idx === 0 ? ' active' : '');
+        btn.dataset.category = cat;
+        btn.textContent = cat;
+        btn.addEventListener('click', () => {
+          // activate visual state
+          Array.from(filtersEl.children).forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          applyFilter(cat, brands);
+        });
+        filtersEl.appendChild(btn);
+      });
+
+      // initial render: show all
+      applyFilter('All', brands);
+
+      function applyFilter(category, allBrands) {
+        let filtered;
+        if (category === 'All') {
+          filtered = allBrands.slice();
+        } else {
+          filtered = allBrands.filter(b => b.category && String(b.category).trim() === category);
+        }
+        renderGrid(filtered);
+        countEl.textContent = filtered.length + ' brand' + (filtered.length !== 1 ? 's' : '');
       }
-      grid.innerHTML = brands.map((b, i) => `
-        <a class="card" href="${b.pdf}" target="_blank" rel="noopener" style="animation-delay:${i * 0.07}s">
-          <div class="card-img-wrap">
-            <img src="${b.cover}" alt="${b.name}" onerror="this.style.display='none'"/>
-            <div class="card-overlay"><span class="view-btn">View Catalog</span></div>
-          </div>
-          <div class="card-body">
-            <span class="card-name">${b.name}</span>
-            <div class="card-arrow">
-              <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
-                <path d="M2 6h8M6 2l4 4-4 4"/>
-              </svg>
+
+      function renderGrid(list) {
+        if (!list.length) {
+          grid.innerHTML = '<div class="empty-state">No catalogs available yet.</div>';
+          return;
+        }
+        grid.innerHTML = list.map((b, i) => `
+          <a class="card" href="${b.pdf}" target="_blank" rel="noopener" style="animation-delay:${i * 0.07}s">
+            <div class="card-img-wrap">
+              <img src="${b.cover}" alt="${b.name}" onerror="this.style.display='none'"/>
+              <div class="card-overlay"><span class="view-btn">View Catalog</span></div>
             </div>
-          </div>
-        </a>
-      `).join('');
+            <div class="card-body">
+              <span class="card-name">${b.name}</span>
+              <div class="card-arrow">
+                <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M2 6h8M6 2l4 4-4 4"/>
+                </svg>
+              </div>
+            </div>
+          </a>
+        `).join('');
+      }
+
     } catch(err) {
       grid.innerHTML = '<div class="empty-state">Failed to load. Please try again later.</div>';
     }
