@@ -46,8 +46,8 @@
     .hero .logo-fallback { width:90px; height:90px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:34px; }
     .hero-brand-name { font-family: 'Playfair Display', serif; font-size: clamp(20px, 4vw, 34px); font-weight: 700; color: white; }
 
-    .contact-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 18px; display:flex; gap:12px; align-items:center; }
-    .contact-pill { display:inline-flex; align-items:center; gap:10px; padding:8px 14px; border-radius:999px; background: rgba(0,0,0,0.45); color: #fff; text-decoration:none; font-size:14px; border: 1px solid rgba(255,255,255,0.06); }
+    .contact-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: 18px; display:flex; gap:12px; align-items:center; flex-wrap: wrap; justify-content: center; }
+    .contact-pill { display:inline-flex; align-items:center; gap:10px; padding:10px 20px; border-radius:999px; background: rgba(0,0,0,0.45); color: #fff; text-decoration:none; font-size:14px; border: 1px solid rgba(255,255,255,0.06); min-width: 160px; white-space: nowrap; }
     .contact-pill svg { width:18px; height:18px; flex-shrink:0; fill: var(--gold); }
     .contact-pill.whatsapp svg { fill: #25D366; }
     .contact-pill:hover { background: rgba(0,0,0,0.55); }
@@ -117,8 +117,8 @@
       .hero, .hero * { text-align: center; }
 
       /* Contact bar: stack into 2x2 grid with ~48% width pills */
-      .contact-bar { position: static; transform: none; left: auto; bottom: auto; display: grid; grid-template-columns: repeat(2, 48%); gap:8px; justify-content: center; margin-top: 18px; }
-      .contact-pill { width: 100%; padding: 8px 10px; justify-content: center; }
+      .contact-bar { position: static; transform: none; left: auto; bottom: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:8px; justify-content: center; margin-top: 18px; }
+      .contact-pill { width: 100%; padding: 10px 12px; justify-content: center; min-width: 0; }
 
       /* Section header: stack heading + brand-count, filters below */
       .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
